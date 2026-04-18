@@ -100,7 +100,14 @@ interface I18nCtx {
   dir: "ltr" | "rtl";
 }
 
-const I18nContext = createContext<I18nCtx | undefined>(undefined);
+const defaultCtx: I18nCtx = {
+  lang: "en",
+  setLang: () => {},
+  t: (key) => en[key as string] ?? String(key),
+  dir: "ltr",
+};
+
+const I18nContext = createContext<I18nCtx>(defaultCtx);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => (localStorage.getItem("hu-lang") as Lang) || "en");
@@ -121,7 +128,5 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 }
 
 export function useI18n() {
-  const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useI18n must be used within I18nProvider");
-  return ctx;
+  return useContext(I18nContext);
 }
