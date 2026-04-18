@@ -241,6 +241,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email: string | null
           full_name: string
           id: string
           phone: string | null
@@ -250,6 +251,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string
           id: string
           phone?: string | null
@@ -259,6 +261,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string
           id?: string
           phone?: string | null
@@ -635,6 +638,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      email_from_university_id: { Args: { _uid: string }; Returns: string }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -646,6 +650,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "supervisor" | "student"

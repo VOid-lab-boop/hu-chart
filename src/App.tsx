@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
+import Users from "./pages/Users";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
                   <Route path="appointments" element={<ComingSoon title="Appointments" />} />
                   <Route path="reports" element={<ComingSoon title="Reports & Analytics" />} />
                   <Route path="supervision" element={<ComingSoon title="Supervisor Workflow" subtitle="Approve and digitally sign student cases" />} />
+                  <Route path="users" element={<Users />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

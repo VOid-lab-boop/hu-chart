@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Activity, Gauge, ScanLine,
-  ClipboardList, CalendarDays, FileBarChart2, ShieldCheck, Settings, LogOut
+  ClipboardList, CalendarDays, FileBarChart2, ShieldCheck, UserCog, LogOut
 } from "lucide-react";
 import { HULogo } from "@/components/HULogo";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
 
 const supervisorItems: NavItem[] = [
   { to: "/app/supervision", icon: ShieldCheck, key: "supervision" },
+  { to: "/app/users", icon: UserCog, key: "users" },
 ];
 
 export function Sidebar() {
