@@ -61,6 +61,199 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          changes: Json | null
+          created_at: string
+          id: string
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          changes?: Json | null
+          created_at?: string
+          id?: string
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
+      case_grades: {
+        Row: {
+          chart_id: string
+          comments: string | null
+          created_at: string
+          diagnosis_score: number
+          documentation_score: number
+          id: string
+          student_id: string
+          supervisor_id: string
+          technique_score: number
+          total_score: number | null
+        }
+        Insert: {
+          chart_id: string
+          comments?: string | null
+          created_at?: string
+          diagnosis_score: number
+          documentation_score: number
+          id?: string
+          student_id: string
+          supervisor_id: string
+          technique_score: number
+          total_score?: number | null
+        }
+        Update: {
+          chart_id?: string
+          comments?: string | null
+          created_at?: string
+          diagnosis_score?: number
+          documentation_score?: number
+          id?: string
+          student_id?: string
+          supervisor_id?: string
+          technique_score?: number
+          total_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_grades_chart_id_fkey"
+            columns: ["chart_id"]
+            isOneToOne: false
+            referencedRelation: "periodontal_charts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinical_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          patient_id: string
+          uploaded_by: string
+          view_type: string | null
+          visit_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          patient_id: string
+          uploaded_by: string
+          view_type?: string | null
+          visit_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          patient_id?: string
+          uploaded_by?: string
+          view_type?: string | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_photos_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_photos_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consents: {
+        Row: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          id: string
+          notes: string | null
+          patient_id: string
+          signature_data_url: string | null
+          signed_at: string
+          signed_by_name: string
+          witnessed_by: string
+        }
+        Insert: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          id?: string
+          notes?: string | null
+          patient_id: string
+          signature_data_url?: string | null
+          signed_at?: string
+          signed_by_name: string
+          witnessed_by: string
+        }
+        Update: {
+          consent_type?: Database["public"]["Enums"]["consent_type"]
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          signature_data_url?: string | null
+          signed_at?: string
+          signed_by_name?: string
+          witnessed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      graduation_requirements: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          procedure_name: string
+          target_count: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          procedure_name: string
+          target_count?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          procedure_name?: string
+          target_count?: number
+        }
+        Relationships: []
+      }
       indices_records: {
         Row: {
           bleeding_index_percentage: number | null
@@ -119,6 +312,113 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      medical_history: {
+        Row: {
+          alcohol_use: string | null
+          allergies_detail: string | null
+          blood_pressure: string | null
+          brushing_frequency: string | null
+          cigarettes_per_day: number | null
+          conditions: Json | null
+          created_at: string
+          current_medications: string | null
+          family_history: string | null
+          flossing_frequency: string | null
+          id: string
+          last_dental_visit: string | null
+          notes: string | null
+          patient_id: string
+          pregnancy: boolean | null
+          pulse: number | null
+          recorded_by: string
+          smoker: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          alcohol_use?: string | null
+          allergies_detail?: string | null
+          blood_pressure?: string | null
+          brushing_frequency?: string | null
+          cigarettes_per_day?: number | null
+          conditions?: Json | null
+          created_at?: string
+          current_medications?: string | null
+          family_history?: string | null
+          flossing_frequency?: string | null
+          id?: string
+          last_dental_visit?: string | null
+          notes?: string | null
+          patient_id: string
+          pregnancy?: boolean | null
+          pulse?: number | null
+          recorded_by: string
+          smoker?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          alcohol_use?: string | null
+          allergies_detail?: string | null
+          blood_pressure?: string | null
+          brushing_frequency?: string | null
+          cigarettes_per_day?: number | null
+          conditions?: Json | null
+          created_at?: string
+          current_medications?: string | null
+          family_history?: string | null
+          flossing_frequency?: string | null
+          id?: string
+          last_dental_visit?: string | null
+          notes?: string | null
+          patient_id?: string
+          pregnancy?: boolean | null
+          pulse?: number | null
+          recorded_by?: string
+          smoker?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       patients: {
         Row: {
@@ -651,11 +951,21 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      requirement_progress: {
+        Args: { _student_id: string }
+        Returns: {
+          completed: number
+          procedure_name: string
+          requirement_id: string
+          target_count: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "supervisor" | "student"
       bone_loss_pattern: "horizontal" | "vertical" | "mixed" | "none"
       case_status: "draft" | "pending_review" | "approved" | "completed"
+      consent_type: "treatment" | "photo" | "research" | "radiograph"
       gender_type: "male" | "female" | "other"
       treatment_status: "planned" | "in_progress" | "completed" | "cancelled"
     }
@@ -788,6 +1098,7 @@ export const Constants = {
       app_role: ["admin", "supervisor", "student"],
       bone_loss_pattern: ["horizontal", "vertical", "mixed", "none"],
       case_status: ["draft", "pending_review", "approved", "completed"],
+      consent_type: ["treatment", "photo", "research", "radiograph"],
       gender_type: ["male", "female", "other"],
       treatment_status: ["planned", "in_progress", "completed", "cancelled"],
     },
