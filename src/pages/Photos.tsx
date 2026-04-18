@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Camera, Upload, Loader2, Trash2 } from "lucide-react";
@@ -29,6 +33,8 @@ export default function Photos() {
   const [viewType, setViewType] = useState("intra-oral front");
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const selectedPatient = patients.find((p) => p.id === patientId);
 
   const load = async () => {
     setLoading(true);
@@ -78,10 +84,35 @@ export default function Photos() {
               <DialogHeader><DialogTitle>Upload photo</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div><Label>Patient</Label>
-                  <Select value={patientId} onValueChange={setPatientId}>
-                    <SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger>
-                    <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                        {selectedPatient ? `${selectedPatient.full_name} (${selectedPatient.patient_code})` : "Search patient by name..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Type a name or code..." />
+                        <CommandList>
+                          <CommandEmpty>No patient found.</CommandEmpty>
+                          <CommandGroup>
+                            {patients.map((p) => (
+                              <CommandItem
+                                key={p.id}
+                                value={`${p.full_name} ${p.patient_code}`}
+                                onSelect={() => { setPatientId(p.id); setPickerOpen(false); }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", patientId === p.id ? "opacity-100" : "opacity-0")} />
+                                <span className="flex-1">{p.full_name}</span>
+                                <span className="ml-2 font-mono text-xs text-muted-foreground">{p.patient_code}</span>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div><Label>Photo file</Label><Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
                 <div><Label>View type</Label>
