@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Welcome to HU Charting system 
 
 TODO: Document your project here
