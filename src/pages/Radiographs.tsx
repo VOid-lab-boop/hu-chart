@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { ScanLine, Upload, Loader2, Trash2, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { format } from "date-fns";
+import { PatientPicker } from "@/components/PatientPicker";
 
 type Pattern = "horizontal" | "vertical" | "mixed" | "none";
 
@@ -100,10 +101,7 @@ export default function Radiographs() {
               <DialogHeader><DialogTitle>Upload radiograph</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div><Label>Patient</Label>
-                  <Select value={patientId} onValueChange={setPatientId}>
-                    <SelectTrigger><SelectValue placeholder="Choose patient" /></SelectTrigger>
-                    <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name} · {p.patient_code}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <PatientPicker patients={patients} value={patientId} onChange={setPatientId} />
                 </div>
                 <div><Label>Image file</Label><Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
                 <div className="grid grid-cols-2 gap-2">

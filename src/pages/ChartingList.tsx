@@ -26,6 +26,7 @@ export default function ChartingList() {
   const [patients, setPatients] = useState<{ id: string; full_name: string; patient_code: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
+  const [pickFilter, setPickFilter] = useState("");
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -67,7 +68,10 @@ export default function ChartingList() {
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="font-display font-semibold">Start a new chart</h3>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Pick a patient</span>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={pickFilter} onChange={e => setPickFilter(e.target.value)} placeholder="Search patient by name…" className="h-9 pl-9" />
+            </div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {patients.length === 0 && (
@@ -75,7 +79,9 @@ export default function ChartingList() {
                 No patients yet. <Link to="/app/patients" className="text-primary underline">Create one first</Link>.
               </p>
             )}
-            {patients.map(p => (
+            {patients
+              .filter(p => !pickFilter || p.full_name.toLowerCase().includes(pickFilter.toLowerCase()) || p.patient_code.toLowerCase().includes(pickFilter.toLowerCase()))
+              .map(p => (
               <button
                 key={p.id}
                 disabled={creating}
