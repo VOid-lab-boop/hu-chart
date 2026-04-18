@@ -17,6 +17,8 @@ import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
 import Users from "./pages/Users";
 import ComingSoon from "./pages/ComingSoon";
+import ChartingList from "./pages/ChartingList";
+import Charting from "./pages/Charting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,8 +47,8 @@ const App = () => (
                   <Route index element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="patients/:id" element={<PatientDetail />} />
-                  <Route path="charting" element={<ComingSoon title="Periodontal Charting" subtitle="Open a patient and click 'New chart' to begin" />} />
-                  <Route path="charting/:id" element={<ComingSoon title="Interactive Chart" subtitle="32-tooth periodontal chart — landing in next iteration" />} />
+                  <Route path="charting" element={<ChartingList />} />
+                  <Route path="charting/:id" element={<Charting />} />
                   <Route path="indices" element={<ComingSoon title="Periodontal Indices" />} />
                   <Route path="radiographs" element={<ComingSoon title="Radiographs" />} />
                   <Route path="treatment" element={<ComingSoon title="Treatment Planning" />} />
