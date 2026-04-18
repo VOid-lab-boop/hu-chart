@@ -9,11 +9,13 @@ import { useNavigate } from "react-router-dom";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 export function UserMenu() {
-  const { user, profile, roles } = useAuth();
+  const { user, roles } = useAuth();
   const navigate = useNavigate();
   const [pwdOpen, setPwdOpen] = useState(false);
 
-  const initials = (profile?.full_name || user?.email || "?")
+  const fullName = (user?.user_metadata as any)?.full_name as string | undefined;
+  const universityId = (user?.user_metadata as any)?.university_id as string | undefined;
+  const initials = (fullName || user?.email || "?")
     .split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
 
   const signOut = async () => {
@@ -33,9 +35,9 @@ export function UserMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="space-y-0.5">
-            <div className="font-medium">{profile?.full_name || "Account"}</div>
+            <div className="font-medium">{fullName || "Account"}</div>
             <div className="text-[11px] font-normal text-muted-foreground">
-              {profile?.university_id ?? user?.email}
+              {universityId ?? user?.email}
               {roles?.length ? ` · ${roles[0]}` : ""}
             </div>
           </DropdownMenuLabel>
