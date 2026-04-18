@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CalendarDays, Plus, Loader2, Clock } from "lucide-react";
 import { format, parseISO, startOfWeek, addDays, isSameDay } from "date-fns";
+import { PatientPicker } from "@/components/PatientPicker";
 
 const STATUSES = ["scheduled", "completed", "cancelled", "no_show"];
 
@@ -78,10 +79,7 @@ export default function Appointments() {
                 <DialogHeader><DialogTitle>New appointment</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <div><Label>Patient</Label>
-                    <Select value={form.patient_id} onValueChange={(v) => setForm({ ...form, patient_id: v })}>
-                      <SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger>
-                      <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <PatientPicker patients={patients} value={form.patient_id} onChange={(v) => setForm({ ...form, patient_id: v })} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div><Label>Date & time</Label><Input type="datetime-local" value={form.scheduled_at} onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })} /></div>
