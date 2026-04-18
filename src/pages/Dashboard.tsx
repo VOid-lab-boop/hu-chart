@@ -18,15 +18,17 @@ export default function Dashboard() {
   const { user, roles } = useAuth();
   const [stats, setStats] = useState<Stats>({ patients: 0, drafts: 0, pending: 0, approved: 0 });
   const [recent, setRecent] = useState<any[]>([]);
+  const [fullName, setFullName] = useState<string>("");
 
   useEffect(() => {
     (async () => {
-      const [p, d, pe, a, r] = await Promise.all([
+      const [p, d, pe, a, r, prof] = await Promise.all([
         supabase.from("patients").select("id", { count: "exact", head: true }),
         supabase.from("periodontal_charts").select("id", { count: "exact", head: true }).eq("status", "draft"),
         supabase.from("periodontal_charts").select("id", { count: "exact", head: true }).eq("status", "pending_review"),
         supabase.from("periodontal_charts").select("id", { count: "exact", head: true }).eq("status", "approved"),
         supabase.from("patients").select("id, patient_code, full_name, created_at").order("created_at", { ascending: false }).limit(5),
+        user ? supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null } as any),
       ]);
       setStats({
         patients: p.count ?? 0,
@@ -35,8 +37,10 @@ export default function Dashboard() {
         approved: a.count ?? 0,
       });
       setRecent(r.data ?? []);
+      const meta = (user?.user_metadata as any) || {};
+      setFullName(prof?.data?.full_name || meta.full_name || (user?.email?.split("@")[0] ?? ""));
     })();
-  }, []);
+  }, [user]);
 
   const StatCard = ({ icon: Icon, label, value, accent }: any) => (
     <Card className="p-5">
@@ -51,7 +55,7 @@ export default function Dashboard() {
   return (
     <>
       <Topbar
-        title={`Welcome${user?.email ? ", " + user.email.split("@")[0] : ""}`}
+        title={`Welcome${fullName ? ", " + fullName : ""}`}
         subtitle={`${roles.join(", ") || "user"} · HU Faculty of Dentistry`}
         actions={
           <Button asChild size="sm" className="gap-1.5">
