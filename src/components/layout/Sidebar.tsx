@@ -8,7 +8,9 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+type NavItem = { to: string; icon: any; key: string; end?: boolean };
+
+const navItems: NavItem[] = [
   { to: "/app", icon: LayoutDashboard, key: "dashboard", end: true },
   { to: "/app/patients", icon: Users, key: "patients" },
   { to: "/app/charting", icon: Activity, key: "charting" },
@@ -17,11 +19,11 @@ const navItems = [
   { to: "/app/treatment", icon: ClipboardList, key: "treatment" },
   { to: "/app/appointments", icon: CalendarDays, key: "appointments" },
   { to: "/app/reports", icon: FileBarChart2, key: "reports" },
-] as const;
+];
 
-const supervisorItems = [
+const supervisorItems: NavItem[] = [
   { to: "/app/supervision", icon: ShieldCheck, key: "supervision" },
-] as const;
+];
 
 export function Sidebar() {
   const { signOut, user, roles } = useAuth();
