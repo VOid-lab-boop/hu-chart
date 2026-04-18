@@ -45,6 +45,9 @@ const en: Dict = {
   created: "Created",
   visits: "Visits",
   open: "Open",
+  photos: "Photos",
+  requirements: "Requirements",
+  audit: "Audit Log",
 };
 
 const ar: Dict = {
@@ -89,6 +92,9 @@ const ar: Dict = {
   created: "تاريخ الإنشاء",
   visits: "الزيارات",
   open: "فتح",
+  photos: "الصور السريرية",
+  requirements: "متطلبات التخرج",
+  audit: "سجل التدقيق",
 };
 
 const dictionaries: Record<Lang, Dict> = { en, ar };

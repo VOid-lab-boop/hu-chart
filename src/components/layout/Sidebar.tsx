@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Activity, Gauge, ScanLine,
-  ClipboardList, CalendarDays, FileBarChart2, ShieldCheck, UserCog, LogOut
+  LayoutDashboard, Users, Activity, Gauge, ScanLine, Camera,
+  ClipboardList, CalendarDays, FileBarChart2, ShieldCheck, UserCog, LogOut,
+  GraduationCap, History
 } from "lucide-react";
 import { HULogo } from "@/components/HULogo";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -16,6 +17,7 @@ const navItems: NavItem[] = [
   { to: "/app/charting", icon: Activity, key: "charting" },
   { to: "/app/indices", icon: Gauge, key: "indices" },
   { to: "/app/radiographs", icon: ScanLine, key: "radiographs" },
+  { to: "/app/photos", icon: Camera, key: "photos" },
   { to: "/app/treatment", icon: ClipboardList, key: "treatment" },
   { to: "/app/appointments", icon: CalendarDays, key: "appointments" },
   { to: "/app/reports", icon: FileBarChart2, key: "reports" },
@@ -23,6 +25,8 @@ const navItems: NavItem[] = [
 
 const supervisorItems: NavItem[] = [
   { to: "/app/supervision", icon: ShieldCheck, key: "supervision" },
+  { to: "/app/requirements", icon: GraduationCap, key: "requirements" },
+  { to: "/app/audit", icon: History, key: "audit" },
   { to: "/app/users", icon: UserCog, key: "users" },
 ];
 

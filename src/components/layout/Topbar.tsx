@@ -1,10 +1,11 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ArrowLeft, Bell, Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useLocation, useNavigate } from "react-router-dom";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 interface TopbarProps {
   title: string;
@@ -49,9 +50,7 @@ export function Topbar({ title, subtitle, actions, hideBack }: TopbarProps) {
 
       <LanguageToggle />
       <ThemeToggle />
-      <Button variant="ghost" size="icon" aria-label="Notifications">
-        <Bell className="h-[18px] w-[18px]" />
-      </Button>
+      <NotificationsBell />
     </header>
   );
 }
