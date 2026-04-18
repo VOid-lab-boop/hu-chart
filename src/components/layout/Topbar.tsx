@@ -1,12 +1,11 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useI18n } from "@/components/providers/I18nProvider";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { UserMenu } from "@/components/UserMenu";
+import { GlobalPatientSearch } from "@/components/GlobalPatientSearch";
 
 interface TopbarProps {
   title: string;
@@ -17,7 +16,6 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, subtitle, actions, hideBack }: TopbarProps) {
-  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const showBack = !hideBack && location.pathname !== "/app" && location.pathname !== "/app/";
@@ -42,10 +40,7 @@ export function Topbar({ title, subtitle, actions, hideBack }: TopbarProps) {
         {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
       </div>
 
-      <div className="hidden md:flex relative w-64">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder={t("search")} className="h-9 pl-9 bg-muted/40" />
-      </div>
+      <GlobalPatientSearch />
 
       {actions}
 
