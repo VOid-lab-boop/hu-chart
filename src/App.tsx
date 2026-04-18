@@ -15,10 +15,19 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Patients from "./pages/Patients";
 import PatientDetail from "./pages/PatientDetail";
+import MedicalHistory from "./pages/MedicalHistory";
 import Users from "./pages/Users";
-import ComingSoon from "./pages/ComingSoon";
 import ChartingList from "./pages/ChartingList";
 import Charting from "./pages/Charting";
+import Indices from "./pages/Indices";
+import Radiographs from "./pages/Radiographs";
+import Treatment from "./pages/Treatment";
+import Appointments from "./pages/Appointments";
+import Reports from "./pages/Reports";
+import Supervision from "./pages/Supervision";
+import Requirements from "./pages/Requirements";
+import Photos from "./pages/Photos";
+import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,14 +56,19 @@ const App = () => (
                   <Route index element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="patients/:id" element={<PatientDetail />} />
+                  <Route path="patients/:id/history" element={<MedicalHistory />} />
                   <Route path="charting" element={<ChartingList />} />
                   <Route path="charting/:id" element={<Charting />} />
-                  <Route path="indices" element={<ComingSoon title="Periodontal Indices" />} />
-                  <Route path="radiographs" element={<ComingSoon title="Radiographs" />} />
-                  <Route path="treatment" element={<ComingSoon title="Treatment Planning" />} />
-                  <Route path="appointments" element={<ComingSoon title="Appointments" />} />
-                  <Route path="reports" element={<ComingSoon title="Reports & Analytics" />} />
-                  <Route path="supervision" element={<ComingSoon title="Supervisor Workflow" subtitle="Approve and digitally sign student cases" />} />
+                  <Route path="indices" element={<Indices />} />
+                  <Route path="indices/:chartId" element={<Indices />} />
+                  <Route path="radiographs" element={<Radiographs />} />
+                  <Route path="photos" element={<Photos />} />
+                  <Route path="treatment" element={<Treatment />} />
+                  <Route path="appointments" element={<Appointments />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="supervision" element={<Supervision />} />
+                  <Route path="requirements" element={<Requirements />} />
+                  <Route path="audit" element={<AuditLog />} />
                   <Route path="users" element={<Users />} />
                 </Route>
 

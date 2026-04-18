@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Activity, ScanLine, ClipboardList } from "lucide-react";
+import { Loader2, ArrowLeft, Activity, ScanLine, ClipboardList, FileText, Camera } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -97,8 +97,10 @@ export default function PatientDetail() {
             <h3 className="mb-3 font-display font-semibold">Quick actions</h3>
             <div className="space-y-2">
               <Button variant="outline" className="w-full justify-start gap-2" onClick={startNewChart}><Activity className="h-4 w-4" /> Start periodontal chart</Button>
+              <Button variant="outline" className="w-full justify-start gap-2" asChild><Link to={`/app/patients/${patient.id}/history`}><FileText className="h-4 w-4" /> Medical history & consent</Link></Button>
               <Button variant="outline" className="w-full justify-start gap-2" asChild><Link to={`/app/radiographs?patient=${patient.id}`}><ScanLine className="h-4 w-4" /> Upload radiograph</Link></Button>
-              <Button variant="outline" className="w-full justify-start gap-2" asChild><Link to={`/app/treatment?patient=${patient.id}`}><ClipboardList className="h-4 w-4" /> View treatment plan</Link></Button>
+              <Button variant="outline" className="w-full justify-start gap-2" asChild><Link to={`/app/photos?patient=${patient.id}`}><Camera className="h-4 w-4" /> Clinical photos</Link></Button>
+              <Button variant="outline" className="w-full justify-start gap-2" asChild><Link to={`/app/treatment?patient=${patient.id}`}><ClipboardList className="h-4 w-4" /> Treatment plan</Link></Button>
             </div>
           </Card>
         </div>
