@@ -33,6 +33,8 @@ export default function Photos() {
   const [viewType, setViewType] = useState("intra-oral front");
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const selectedPatient = patients.find((p) => p.id === patientId);
 
   const load = async () => {
     setLoading(true);
