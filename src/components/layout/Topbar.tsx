@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useLocation, useNavigate } from "react-router-dom";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { UserMenu } from "@/components/UserMenu";
 
 interface TopbarProps {
   title: string;
@@ -51,6 +52,7 @@ export function Topbar({ title, subtitle, actions, hideBack }: TopbarProps) {
       <LanguageToggle />
       <ThemeToggle />
       <NotificationsBell />
+      <UserMenu />
     </header>
   );
 }

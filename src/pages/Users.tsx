@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Loader2, Plus, UserCog, Copy, GraduationCap, ShieldCheck, Crown, RefreshCw } from "lucide-react";
+import { Loader2, Plus, UserCog, Copy, GraduationCap, ShieldCheck, Crown, RefreshCw, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -36,10 +36,10 @@ export default function Users() {
 
   const [name, setName] = useState("");
   const [uid, setUid] = useState("");
-  const [email, setEmail] = useState("");
-  const [pwd, setPwd] = useState("");
   const [role, setRole] = useState<"student" | "supervisor" | "admin">("student");
   const [createdInfo, setCreatedInfo] = useState<{ uid: string; email: string; pwd: string } | null>(null);
+
+  const DEFAULT_PASSWORD = "HU12345";
 
   const load = async () => {
     setLoading(true);
@@ -60,21 +60,14 @@ export default function Users() {
 
   useEffect(() => { if (isAdmin) load(); else setLoading(false); }, [isAdmin]);
 
-  const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-    let p = "";
-    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
-    setPwd(p);
-  };
-
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!uid.trim()) { toast.error("University number required"); return; }
-    if (pwd.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (!name.trim()) { toast.error("Full name required"); return; }
 
     setBusy(true);
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
-      body: { full_name: name, university_id: uid.trim(), email: email.trim() || undefined, password: pwd, role },
+      body: { full_name: name.trim(), university_id: uid.trim(), password: DEFAULT_PASSWORD, role },
     });
     setBusy(false);
 
@@ -84,9 +77,9 @@ export default function Users() {
     }
 
     const createdEmail = (data as any).user.email as string;
-    setCreatedInfo({ uid: uid.trim(), email: createdEmail, pwd });
+    setCreatedInfo({ uid: uid.trim(), email: createdEmail, pwd: DEFAULT_PASSWORD });
     toast.success(`Account created for ${uid.trim()}`);
-    setName(""); setUid(""); setEmail(""); setPwd(""); setRole("student");
+    setName(""); setUid(""); setRole("student");
     setOpen(false);
     load();
   };
@@ -131,7 +124,7 @@ export default function Users() {
                 <DialogHeader>
                   <DialogTitle>Create a new account</DialogTitle>
                   <DialogDescription>
-                    Hand the university number + password to the user. They sign in at /auth.
+                    Every new account starts with the default password <span className="font-mono font-semibold">HU12345</span>. Users can change it from their account menu after signing in.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -157,15 +150,11 @@ export default function Users() {
                       </Select>
                     </div>
                   </div>
-                  <div>
-                    <Label>Recovery email (optional)</Label>
-                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="leave blank to use {uid}@student.hu.edu.jo" />
-                  </div>
-                  <div>
-                    <Label>Temporary password</Label>
-                    <div className="flex gap-2">
-                      <Input required minLength={6} value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 6 characters" />
-                      <Button type="button" variant="outline" onClick={generatePassword}>Generate</Button>
+                  <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-3">
+                    <KeyRound className="h-4 w-4 text-muted-foreground" />
+                    <div className="text-xs">
+                      <p className="font-medium">Default password: <span className="font-mono">HU12345</span></p>
+                      <p className="text-muted-foreground">User should change this on first sign-in.</p>
                     </div>
                   </div>
                   <DialogFooter>
