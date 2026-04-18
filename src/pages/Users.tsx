@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Loader2, Plus, UserCog, Copy } from "lucide-react";
+import { Loader2, Plus, UserCog, Copy, GraduationCap, ShieldCheck, Crown, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-
-const uniToEmail = (uid: string) => `${uid.trim()}@student.hu.edu.jo`;
+import { format } from "date-fns";
 
 interface ProfileRow {
   id: string;
@@ -23,6 +22,9 @@ interface ProfileRow {
   roles: string[];
 }
 
+const roleIcon = (r: string) =>
+  r === "admin" ? Crown : r === "supervisor" ? ShieldCheck : GraduationCap;
+
 export default function Users() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
@@ -30,13 +32,14 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState("");
 
-  // create form
   const [name, setName] = useState("");
   const [uid, setUid] = useState("");
+  const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [role, setRole] = useState<"student" | "supervisor" | "admin">("student");
-  const [createdEmail, setCreatedEmail] = useState<string | null>(null);
+  const [createdInfo, setCreatedInfo] = useState<{ uid: string; email: string; pwd: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -51,7 +54,7 @@ export default function Users() {
       arr.push(r.role);
       rolesMap.set(r.user_id, arr);
     });
-    setRows(((profiles ?? []) as any[]).map((p) => ({ ...p, roles: rolesMap.get(p.id) ?? [] })));
+    setRows(((profiles ?? []) as any[]).map(p => ({ ...p, roles: rolesMap.get(p.id) ?? [] })));
     setLoading(false);
   };
 
@@ -70,36 +73,22 @@ export default function Users() {
     if (pwd.length < 6) { toast.error("Password must be at least 6 characters"); return; }
 
     setBusy(true);
-    const email = uniToEmail(uid);
-
-    // We use the standard signUp endpoint. The handle_new_user trigger reads role from metadata.
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: pwd,
-      options: {
-        emailRedirectTo: `${window.location.origin}/app`,
-        data: { full_name: name, university_id: uid.trim(), role },
-      },
+    const { data, error } = await supabase.functions.invoke("admin-create-user", {
+      body: { full_name: name, university_id: uid.trim(), email: email.trim() || undefined, password: pwd, role },
     });
+    setBusy(false);
 
-    if (error) {
-      setBusy(false);
-      toast.error(error.message);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error ?? error?.message ?? "Could not create account");
       return;
     }
 
-    // signUp will sign IN the new user on this client (since auto-confirm is on),
-    // which would log out the admin. Sign back in to admin? Easier: sign out the freshly-created user
-    // and rely on the admin's persisted session via the previous login. But Supabase replaces the session.
-    // Workaround: sign the new user out immediately. The admin will need to sign in again.
-    await supabase.auth.signOut();
-    setBusy(false);
-    setCreatedEmail(email);
-    toast.success(`Account created for ${uid}. You've been signed out — please sign back in as admin.`);
-    setName(""); setUid(""); setPwd(""); setRole("student");
+    const createdEmail = (data as any).user.email as string;
+    setCreatedInfo({ uid: uid.trim(), email: createdEmail, pwd });
+    toast.success(`Account created for ${uid.trim()}`);
+    setName(""); setUid(""); setEmail(""); setPwd(""); setRole("student");
     setOpen(false);
-    // Force reload so AuthProvider picks up the signed-out state and routes to /auth
-    setTimeout(() => { window.location.href = "/auth"; }, 1500);
+    load();
   };
 
   if (!isAdmin) {
@@ -107,7 +96,7 @@ export default function Users() {
       <>
         <Topbar title="Users" />
         <div className="flex flex-1 items-center justify-center p-6">
-          <Card className="p-8 text-center max-w-md">
+          <Card className="max-w-md p-8 text-center">
             <UserCog className="mx-auto h-10 w-10 text-muted-foreground" />
             <h3 className="mt-3 font-display text-lg font-semibold">Admins only</h3>
             <p className="mt-1 text-sm text-muted-foreground">Only administrators can create and manage user accounts.</p>
@@ -117,77 +106,115 @@ export default function Users() {
     );
   }
 
+  const filtered = rows.filter(r =>
+    !filter ||
+    r.full_name?.toLowerCase().includes(filter.toLowerCase()) ||
+    r.university_id?.includes(filter) ||
+    r.email?.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
     <>
       <Topbar
-        title="Users"
-        subtitle={`${rows.length} accounts`}
+        title="Users & accounts"
+        subtitle={`${rows.length} accounts · admins, supervisors, students`}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> New account</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create account</DialogTitle></DialogHeader>
-              <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
-                <strong>Heads up:</strong> creating an account will sign you out (Supabase limitation). You'll be redirected to sign back in.
-              </div>
-              <form onSubmit={create} className="space-y-3">
-                <div>
-                  <Label>Full name</Label>
-                  <Input required value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={load} aria-label="Refresh">
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" /> New account</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create a new account</DialogTitle>
+                  <DialogDescription>
+                    Hand the university number + password to the user. They sign in at /auth.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={create} className="space-y-3">
                   <div>
-                    <Label>University number</Label>
-                    <Input required inputMode="numeric" value={uid} onChange={(e) => setUid(e.target.value)} placeholder="2336919" />
+                    <Label>Full name</Label>
+                    <Input required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Lara Khalil" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>University number</Label>
+                      <Input required inputMode="numeric" value={uid} onChange={e => setUid(e.target.value)} placeholder="2336920" />
+                    </div>
+                    <div>
+                      <Label>Role</Label>
+                      <Select value={role} onValueChange={(v: any) => setRole(v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">Student</SelectItem>
+                          <SelectItem value="supervisor">Supervisor (Faculty)</SelectItem>
+                          <SelectItem value="admin">Administrator</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
-                    <Label>Role</Label>
-                    <Select value={role} onValueChange={(v: any) => setRole(v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="supervisor">Supervisor</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Recovery email (optional)</Label>
+                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="leave blank to use {uid}@student.hu.edu.jo" />
                   </div>
-                </div>
-                <div>
-                  <Label>Temporary password</Label>
-                  <div className="flex gap-2">
-                    <Input required minLength={6} value={pwd} onChange={(e) => setPwd(e.target.value)} />
-                    <Button type="button" variant="outline" onClick={generatePassword}>Generate</Button>
+                  <div>
+                    <Label>Temporary password</Label>
+                    <div className="flex gap-2">
+                      <Input required minLength={6} value={pwd} onChange={e => setPwd(e.target.value)} placeholder="min. 6 characters" />
+                      <Button type="button" variant="outline" onClick={generatePassword}>Generate</Button>
+                    </div>
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />} Create</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={busy} className="gap-1.5">
+                      {busy && <Loader2 className="h-4 w-4 animate-spin" />} Create account
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
 
-      <div className="flex-1 p-4 md:p-6">
-        {createdEmail && (
-          <Card className="mb-4 p-4 bg-success/10 border-success/40">
-            <p className="text-sm font-medium">Account created.</p>
-            <div className="mt-1 flex items-center gap-2 font-mono text-xs">
-              <span>Login email: {createdEmail}</span>
-              <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(createdEmail); toast.success("Copied"); }}>
-                <Copy className="h-3 w-3" />
-              </Button>
+      <div className="flex-1 space-y-4 p-4 md:p-6">
+        {createdInfo && (
+          <Card className="border-[hsl(var(--severity-healthy))]/40 bg-[hsl(var(--severity-healthy))]/10 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="font-display text-sm font-semibold">Account ready · share these credentials with the user</p>
+                <div className="grid gap-1 font-mono text-xs">
+                  <Row k="University ID" v={createdInfo.uid} />
+                  <Row k="Login email" v={createdInfo.email} />
+                  <Row k="Temp password" v={createdInfo.pwd} />
+                </div>
+                <p className="pt-1 text-[11px] text-muted-foreground">They sign in at the auth page using their university number and this password.</p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setCreatedInfo(null)}>Dismiss</Button>
             </div>
           </Card>
         )}
 
-        {loading ? (
-          <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-        ) : (
-          <Card className="overflow-hidden">
+        <Card className="p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-display text-sm font-semibold">All accounts</h3>
+            <Input
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              placeholder="Search name, university number, email…"
+              className="h-9 w-72 max-w-full"
+            />
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          ) : filtered.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No accounts match.</p>
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-left font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -196,29 +223,48 @@ export default function Users() {
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
                     <th className="px-4 py-3">Roles</th>
+                    <th className="px-4 py-3">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                  {filtered.map(r => (
+                    <tr key={r.id} className="transition-colors hover:bg-muted/30">
                       <td className="px-4 py-3 font-mono">{r.university_id ?? "—"}</td>
                       <td className="px-4 py-3 font-medium">{r.full_name || "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground">{r.email ?? "—"}</td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {r.roles.map((rr) => (
-                            <Badge key={rr} variant={rr === "admin" ? "default" : "secondary"} className="capitalize">{rr}</Badge>
-                          ))}
+                        <div className="flex flex-wrap gap-1">
+                          {r.roles.map(rr => {
+                            const Icon = roleIcon(rr);
+                            return (
+                              <Badge key={rr} variant={rr === "admin" ? "default" : "secondary"} className="gap-1 capitalize">
+                                <Icon className="h-3 w-3" /> {rr}
+                              </Badge>
+                            );
+                          })}
                         </div>
                       </td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{format(new Date(r.created_at), "MMM d, yyyy")}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </Card>
-        )}
+          )}
+        </Card>
       </div>
     </>
+  );
+}
+
+function Row({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-28 text-muted-foreground">{k}</span>
+      <span className="font-semibold">{v}</span>
+      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => { navigator.clipboard.writeText(v); toast.success("Copied"); }}>
+        <Copy className="h-3 w-3" />
+      </Button>
+    </div>
   );
 }
