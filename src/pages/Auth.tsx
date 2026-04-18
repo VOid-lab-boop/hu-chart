@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HULogo } from "@/components/HULogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, GraduationCap, ShieldCheck } from "lucide-react";
+
+/** Build a synthetic email from a university number so Supabase Auth (email-based) keeps working. */
+const uniToEmail = (uid: string) => `${uid.trim()}@student.hu.edu.jo`;
 
 export default function Auth() {
   const { user, loading } = useAuth();
@@ -21,16 +23,15 @@ export default function Auth() {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
 
-  // sign in
-  const [siEmail, setSiEmail] = useState("");
+  // student / staff sign in by university id
+  const [siUid, setSiUid] = useState("");
   const [siPwd, setSiPwd] = useState("");
 
-  // sign up
-  const [suEmail, setSuEmail] = useState("");
-  const [suPwd, setSuPwd] = useState("");
-  const [suName, setSuName] = useState("");
-  const [suUid, setSuUid] = useState("");
-  const [suRole, setSuRole] = useState<"student" | "supervisor">("student");
+  // first-admin bootstrap signup (only allowed if no users yet — UI hint)
+  const [adEmail, setAdEmail] = useState("");
+  const [adPwd, setAdPwd] = useState("");
+  const [adName, setAdName] = useState("");
+  const [adUid, setAdUid] = useState("");
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   if (user) return <Navigate to={(location.state as any)?.from?.pathname ?? "/app"} replace />;
@@ -38,28 +39,44 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: siEmail, password: siPwd });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Signed in");
+    try {
+      // Resolve the email tied to this university number
+      const { data: emailLookup, error: lookupErr } = await supabase.rpc("email_from_university_id", { _uid: siUid.trim() });
+      if (lookupErr) throw lookupErr;
+
+      const resolvedEmail = (emailLookup as string | null) ?? uniToEmail(siUid);
+      const { error } = await supabase.auth.signInWithPassword({ email: resolvedEmail, password: siPwd });
+      if (error) {
+        toast.error("Invalid university number or password");
+      } else {
+        toast.success("Signed in");
+      }
+    } catch (e: any) {
+      toast.error(e.message ?? "Sign-in failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleAdminSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (suPwd.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (adPwd.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     setBusy(true);
     const redirectUrl = `${window.location.origin}/app`;
     const { error } = await supabase.auth.signUp({
-      email: suEmail,
-      password: suPwd,
+      email: adEmail.trim(),
+      password: adPwd,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { full_name: suName, university_id: suUid, role: suRole },
+        data: { full_name: adName, university_id: adUid.trim(), role: "admin" },
       },
     });
     setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Account created — you can sign in now");
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Admin account created. The first ever account is auto-promoted to admin.");
+    }
   };
 
   return (
@@ -82,60 +99,69 @@ export default function Auth() {
 
           <Tabs defaultValue="signin">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">{t("signin")}</TabsTrigger>
-              <TabsTrigger value="signup">{t("signup")}</TabsTrigger>
+              <TabsTrigger value="signin" className="gap-1.5">
+                <GraduationCap className="h-3.5 w-3.5" /> {t("signin")}
+              </TabsTrigger>
+              <TabsTrigger value="bootstrap" className="gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5" /> First admin
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin" className="mt-4">
               <form onSubmit={handleSignIn} className="space-y-3">
                 <div>
-                  <Label htmlFor="si-email">{t("email")}</Label>
-                  <Input id="si-email" type="email" required value={siEmail} onChange={(e) => setSiEmail(e.target.value)} />
+                  <Label htmlFor="si-uid">{t("university_id")}</Label>
+                  <Input
+                    id="si-uid"
+                    inputMode="numeric"
+                    autoComplete="username"
+                    placeholder="e.g. 2336919"
+                    required
+                    value={siUid}
+                    onChange={(e) => setSiUid(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="si-pwd">{t("password")}</Label>
-                  <Input id="si-pwd" type="password" required value={siPwd} onChange={(e) => setSiPwd(e.target.value)} />
+                  <Input id="si-pwd" type="password" autoComplete="current-password" required value={siPwd} onChange={(e) => setSiPwd(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("signin")}
                 </Button>
+                <p className="pt-2 text-center text-[11px] text-muted-foreground">
+                  Don't have an account? Ask an administrator to create one for you.
+                </p>
               </form>
             </TabsContent>
 
-            <TabsContent value="signup" className="mt-4">
-              <form onSubmit={handleSignUp} className="space-y-3">
+            <TabsContent value="bootstrap" className="mt-4">
+              <div className="mb-3 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                Use this <strong>only the first time</strong> to create the founding administrator account.
+                After that, all student & supervisor accounts must be created from the in-app Users page.
+              </div>
+              <form onSubmit={handleAdminSignUp} className="space-y-3">
                 <div>
-                  <Label htmlFor="su-name">{t("full_name")}</Label>
-                  <Input id="su-name" required value={suName} onChange={(e) => setSuName(e.target.value)} />
+                  <Label>Full name</Label>
+                  <Input required value={adName} onChange={(e) => setAdName(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="su-uid">{t("university_id")}</Label>
-                    <Input id="su-uid" value={suUid} onChange={(e) => setSuUid(e.target.value)} />
+                    <Label>{t("university_id")}</Label>
+                    <Input required value={adUid} onChange={(e) => setAdUid(e.target.value)} placeholder="2336919" />
                   </div>
                   <div>
-                    <Label>{t("role")}</Label>
-                    <Select value={suRole} onValueChange={(v: any) => setSuRole(v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">{t("student")}</SelectItem>
-                        <SelectItem value="supervisor">{t("supervisor")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>{t("email")}</Label>
+                    <Input type="email" required value={adEmail} onChange={(e) => setAdEmail(e.target.value)} />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="su-email">{t("email")}</Label>
-                  <Input id="su-email" type="email" required value={suEmail} onChange={(e) => setSuEmail(e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="su-pwd">{t("password")}</Label>
-                  <Input id="su-pwd" type="password" required minLength={6} value={suPwd} onChange={(e) => setSuPwd(e.target.value)} />
+                  <Label>{t("password")}</Label>
+                  <Input type="password" required minLength={6} value={adPwd} onChange={(e) => setAdPwd(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {t("signup")}
+                  Create admin account
                 </Button>
               </form>
             </TabsContent>
