@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PatientPicker } from "@/components/PatientPicker";
 import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Camera, Upload, Loader2, Trash2 } from "lucide-react";
