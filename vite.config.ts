@@ -2,9 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "/hu-chart/",
   server: {
     host: "::",
     port: 8080,
@@ -12,8 +11,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  base: "/hu-cahrt/",
-  plugins: [react()]
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
