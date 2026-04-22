@@ -74,7 +74,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
+            </BrowserRouter  basename="/hu-chart/">
           </TooltipProvider>
         </AuthProvider>
       </I18nProvider>
